@@ -6,4 +6,4 @@ const BuilderPage = () => {
   )
 }
 
-export default BuilderPage
+export default BuilderPage;

@@ -7,7 +7,7 @@ const api = axios.create({
 
 export const dummyUser = {
     _id: "user-1",
-    name: "Alex Rivera",
+    name: "Abhishek kumar",
     email: "alex@example.com",
 };
 
