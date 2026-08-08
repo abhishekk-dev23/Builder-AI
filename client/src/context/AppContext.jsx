@@ -1,12 +1,14 @@
-import {
+import React, {
     createContext,
     useContext,
     useEffect,
     useState,
     useCallback,
+    useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import debounce from "lodash.debounce";
 import API from "../api/api";
 
 const AppContext = createContext(undefined);
@@ -206,6 +208,58 @@ export function AppContextProvider({ children }) {
         [user],
     );
 
+    const handleChat = useCallback(
+        async (prompt) => {
+            if (!activeProject || !user) return;
+            setChatLoading(true);
+
+            try {
+                const { data } = await API.post(
+                    `/api/projects/${activeProject._id}/chat`,
+                    { prompt },
+                );
+
+                setActiveProject(data);
+
+                if (data.errors && data.errors.length > 0) {
+                    toast.error(data.errors[0]);
+                } else {
+                    toast.success(`Updated to version ${data.version}`);
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to send message");
+            } finally {
+                setChatLoading(false);
+            }
+        },
+        [activeProject, user],
+    );
+
+    const debounceSave = useMemo(() => {
+        return debounce(async (files, id) => {
+            try {
+                await API.put(`/api/projects/${id}/files`, { files });
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to save files");
+            }
+        }, 1000);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            debounceSave.flush();
+        };
+    }, [debounceSave]);
+
+    const updateProjectFiles = useCallback((files) => {
+            if (!activeProject || !user) return;
+            debounceSave(files, activeProject._id);
+        },
+        [activeProject, user, debounceSave],
+    );
+
     return (
         <AppContext.Provider
             value={{
@@ -216,6 +270,7 @@ export function AppContextProvider({ children }) {
                 projects,
                 loadingProjects,
                 activeProject,
+                setActiveProject,
                 loadingActiveProject,
                 chatLoading,
                 generatingProject,
@@ -228,6 +283,8 @@ export function AppContextProvider({ children }) {
                 handleGenerate,
                 handleDelete,
                 logout,
+                updateProjectFiles,
+                handleChat,
             }}
         >
             {children}
