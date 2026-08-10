@@ -1,4 +1,4 @@
-import user from "../models/user.js";
+import user from "../models/User.js";
 import JWT from "jsonwebtoken";
 
 // helper to set cookies
