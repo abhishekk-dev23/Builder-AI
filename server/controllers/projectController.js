@@ -260,7 +260,7 @@ export async function updateProjectFiles(req, res) {
     const newFiles = {};
 
     for (const [path, content] of Object.entries(files)) {
-        filesObj[path] = entry.content;
+        filesObj[path] = entry.content
     }
 
     Project.files = newFiles;
